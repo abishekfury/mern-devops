@@ -42,7 +42,7 @@ jobs:
       - name: Get temporary AWS access (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-arn: arn:aws:iam::460351657682:role/github-deploy-role
+          role-to-assume: arn:aws:iam::460351657682:role/github-deploy-role
           aws-region: ap-south-1
 
       - name: Deploy to EC2 using SSM
