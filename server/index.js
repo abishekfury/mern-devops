@@ -21,4 +21,4 @@ mongoose
   .catch((err) => {
     console.error("Mongo connection failed:", err.message);
     process.exit(1);
-  });
+  });''

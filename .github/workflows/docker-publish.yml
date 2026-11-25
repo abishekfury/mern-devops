@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -35,14 +39,24 @@ jobs:
             abishek0924/mern-tasks-frontend:latest
             abishek0924/mern-tasks-frontend:${{ github.sha }}
 
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1
+      - name: Get temporary AWS access (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ~/app
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
+          role-to-arn: arn:aws:iam::460351657682:role/github-deploy-role
+          aws-region: ap-south-1
+
+      - name: Deploy to EC2 using SSM
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --document-name "AWS-RunShellScript" \
+            --instance-ids i-01a37cb886eb0be65 \
+            --parameters 'commands=["cd /home/ubuntu/app","docker compose pull","docker compose up -d","docker image prune -f"]' \
+            --query "Command.CommandId" --output text)
+          echo "Command ID: $CMD_ID"
+          aws ssm wait command-executed \
+            --command-id "$CMD_ID" \
+            --instance-id i-01a37cb886eb0be65
+          aws ssm get-command-invocation \
+            --command-id "$CMD_ID" \
+            --instance-id i-01a37cb886eb0be65 \
+            --query "StandardOutputContent" --output text
