@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <div style={{ maxWidth: 400, margin: "40px auto" }}>
-      <h1>My Tasks V5</h1>
+      <h1>My Tasks V6</h1>
       <form onSubmit={add}>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New task" />
         <button>Add</button>
